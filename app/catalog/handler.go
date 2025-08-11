@@ -96,7 +96,7 @@ func (h *CatalogHandler) HandleGetByCode(w http.ResponseWriter, r *http.Request)
     var variants []Variant
     for _, v := range product.Variants {
         price := product.Price.InexactFloat64()
-        if v.Price.Valid {
+        if v.Price != nil {
             price = v.Price.InexactFloat64()
         }
         variants = append(variants, Variant{

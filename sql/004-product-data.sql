@@ -1,19 +1,20 @@
-INSERT INTO categories (name) VALUES
-('Clothing'),
-('Shoes'),
-('Accessories')
-ON CONFLICT (name) DO NOTHING;
+-- Insert categories with code and name
+INSERT INTO categories (code, name) VALUES
+('clothing', 'Clothing'),
+('shoes', 'Shoes'),
+('accessories', 'Accessories')
+ON CONFLICT (code) DO NOTHING;
 
--- Insert 8 products
+-- Assign products to the correct category using the code
 INSERT INTO products (code, price, category_id) VALUES
-('PROD001', 10.99, (SELECT id FROM categories WHERE name = 'Clothing')),
-('PROD002', 12.49, (SELECT id FROM categories WHERE name = 'Clothing')),
-('PROD003', 8.75, (SELECT id FROM categories WHERE name = 'Shoes')),
-('PROD004', 15.00, (SELECT id FROM categories WHERE name = 'Shoes')),
-('PROD005', 22.99, (SELECT id FROM categories WHERE name = 'Accessories')),
-('PROD006', 5.50, (SELECT id FROM categories WHERE name = 'Clothing')),
-('PROD007', 18.20, (SELECT id FROM categories WHERE name = 'Clothing')),
-('PROD008', 9.99, (SELECT id FROM categories WHERE name = 'Shoes'));
+('PROD001', 10.99, (SELECT id FROM categories WHERE code = 'clothing')),
+('PROD002', 12.49, (SELECT id FROM categories WHERE code = 'shoes')),
+('PROD003', 8.75, (SELECT id FROM categories WHERE code = 'accessories')),
+('PROD004', 15.00, (SELECT id FROM categories WHERE code = 'clothing')),
+('PROD005', 22.99, (SELECT id FROM categories WHERE code = 'accessories')),
+('PROD006', 5.50, (SELECT id FROM categories WHERE code = 'shoes')),
+('PROD007', 18.20, (SELECT id FROM categories WHERE code = 'clothing')),
+('PROD008', 9.99, (SELECT id FROM categories WHERE code = 'accessories'));
 
 -- Insert variants for each product using product code to look up product_id
 
