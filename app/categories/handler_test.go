@@ -27,8 +27,8 @@ func TestHandleGetCategories(t *testing.T) {
     handler := NewCategoriesHandler(repo)
 
     // Insert test data
-    db.Create(&models.Category{Name: "TestCat1"})
-    db.Create(&models.Category{Name: "TestCat2"})
+    db.Create(&models.Category{Code: "cat1", Name: "TestCat1"})
+    db.Create(&models.Category{Code: "cat2", Name: "TestCat2"})
 
     req := httptest.NewRequest("GET", "/categories", nil)
     w := httptest.NewRecorder()
