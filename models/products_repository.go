@@ -1,17 +1,17 @@
 package models
 
 import (
-	"gorm.io/gorm"
+    "gorm.io/gorm"
 )
 
 type ProductsRepository struct {
-	db *gorm.DB
+    db *gorm.DB
 }
 
 func NewProductsRepository(db *gorm.DB) *ProductsRepository {
-	return &ProductsRepository{
-		db: db,
-	}
+    return &ProductsRepository{
+        db: db,
+    }
 }
 
 func (r *ProductsRepository) GetProductsFiltered(offset, limit int, category string, priceLt float64) ([]Product, int64, error) {
@@ -43,4 +43,14 @@ func (r *ProductsRepository) GetProductsFiltered(offset, limit int, category str
         return nil, 0, err
     }
     return products, total, nil
+}
+
+// Nuevo método para obtener un producto por código, con variantes y categoría
+func (r *ProductsRepository) GetProductByCode(code string) (*Product, error) {
+    var product Product
+    err := r.db.Preload("Category").Preload("Variants").Where("code = ?", code).First(&product).Error
+    if err != nil {
+        return nil, err
+    }
+    return &product, nil
 }

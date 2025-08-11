@@ -4,7 +4,9 @@ import (
     "encoding/json"
     "net/http"
     "strconv"
+    "strings"
 
+    "github.com/gorilla/mux"
     "github.com/mytheresa/go-hiring-challenge/models"
 )
 
@@ -15,7 +17,20 @@ type Response struct {
 type Product struct {
     Code     string  `json:"code"`
     Price    float64 `json:"price"`
-    Category string  `json:"category"` // Nuevo campo para la categoría
+    Category string  `json:"category"`
+}
+
+type Variant struct {
+    Name  string  `json:"name"`
+    SKU   string  `json:"sku"`
+    Price float64 `json:"price"`
+}
+
+type ProductDetail struct {
+    Code     string    `json:"code"`
+    Price    float64   `json:"price"`
+    Category string    `json:"category"`
+    Variants []Variant `json:"variants"`
 }
 
 type CatalogHandler struct {
@@ -28,8 +43,8 @@ func NewCatalogHandler(r *models.ProductsRepository) *CatalogHandler {
     }
 }
 
+// Handler para GET /catalog
 func (h *CatalogHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
-    // Leer parámetros de paginación y filtros
     offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
     limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
     category := r.URL.Query().Get("category")
@@ -45,7 +60,6 @@ func (h *CatalogHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Map response
     products := make([]Product, len(res))
     for i, p := range res {
         categoryName := ""
@@ -59,10 +73,46 @@ func (h *CatalogHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
         }
     }
 
-    // Respuesta con total y productos
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(map[string]interface{}{
         "total":    total,
         "products": products,
     })
+}
+
+// Handler para GET /catalog/{code}
+func (h *CatalogHandler) HandleGetByCode(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    code := vars["code"]
+    code = strings.TrimSpace(code)
+
+    product, err := h.repo.GetProductByCode(code)
+    if err != nil {
+        http.Error(w, "Producto no encontrado", http.StatusNotFound)
+        return
+    }
+
+    // Mapear variantes, heredando precio si es NULL
+    var variants []Variant
+    for _, v := range product.Variants {
+        price := product.Price.InexactFloat64()
+        if v.Price.Valid {
+            price = v.Price.InexactFloat64()
+        }
+        variants = append(variants, Variant{
+            Name:  v.Name,
+            SKU:   v.SKU,
+            Price: price,
+        })
+    }
+
+    resp := ProductDetail{
+        Code:     product.Code,
+        Price:    product.Price.InexactFloat64(),
+        Category: product.Category.Name,
+        Variants: variants,
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(resp)
 }
